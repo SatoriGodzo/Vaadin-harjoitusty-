@@ -2,7 +2,7 @@ package com.example.data;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
-import java.util.List; // ВАЖНО: без этого будет ошибка на List<Project>
+import java.util.List;
 
 @Entity
 public class Employee {
@@ -35,7 +35,8 @@ public class Employee {
     @JoinColumn(name = "department_id")
     private Department department;
 
-    @ManyToMany
+    // ИСПРАВЛЕНО: Добавлен FetchType.EAGER, чтобы Grid не выдавал ошибку
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "employee_projects",
             joinColumns = @JoinColumn(name = "employee_id"),

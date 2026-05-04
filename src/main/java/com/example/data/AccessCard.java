@@ -10,32 +10,34 @@ public class AccessCard {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank(message = "Card number is mandatory") // 1
+    @NotBlank(message = "Card number is mandatory")
     private String cardNumber;
 
-    @NotNull // 2
+    @NotNull
     private LocalDate issuedDate;
 
-    @Min(value = 1, message = "Access level must be at least 1") // 3
-    private int accessLevel;
+    // Используем Integer вместо int, чтобы избежать ошибок при пустом поле
+    @Min(value = 1, message = "Access level must be at least 1")
+    private Integer accessLevel;
 
-    @NotBlank // 4
+    @NotBlank(message = "Fabricator is mandatory")
     private String fabricator;
 
-    @AssertTrue(message = "Card must be active") // 5
+    // УДАЛЕНО: @AssertTrue (она блокировала сохранение, если isActive = false)
     private boolean isActive;
 
-    //  1:1  Employee
     @OneToOne(mappedBy = "accessCard")
     private Employee employee;
 
+    // Геттеры и сеттеры
     public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
     public String getCardNumber() { return cardNumber; }
     public void setCardNumber(String cardNumber) { this.cardNumber = cardNumber; }
     public LocalDate getIssuedDate() { return issuedDate; }
     public void setIssuedDate(LocalDate issuedDate) { this.issuedDate = issuedDate; }
-    public int getAccessLevel() { return accessLevel; }
-    public void setAccessLevel(int accessLevel) { this.accessLevel = accessLevel; }
+    public Integer getAccessLevel() { return accessLevel; }
+    public void setAccessLevel(Integer accessLevel) { this.accessLevel = accessLevel; }
     public String getFabricator() { return fabricator; }
     public void setFabricator(String fabricator) { this.fabricator = fabricator; }
     public boolean isActive() { return isActive; }

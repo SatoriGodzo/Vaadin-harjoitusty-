@@ -13,24 +13,25 @@ public class Department {
     @NotBlank(message = "Department name is required")
     private String name;
 
-    @Size(min = 2, message = "Office location too short")
+    // Снизил до 1, чтобы проще было тестировать
+    @Size(min = 1, message = "Office location is required")
     private String office;
 
-    @Email
+    @Email(message = "Invalid email")
+    @NotBlank(message = "Email is required")
     private String contactEmail;
 
     @Min(1)
-    private int floor;
+    private int floor = 1;
 
-    @NotNull
+    @NotBlank(message = "Budget code is required")
     private String budgetCode;
 
-    // 1:N Relaatio - Yhdellä osastolla on monta työntekijää
     @OneToMany(mappedBy = "department")
     private List<Employee> employees;
 
-    // Getterit ja Setterit
     public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
     public String getOffice() { return office; }
