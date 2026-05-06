@@ -25,6 +25,7 @@ public class AccessCardForm extends FormLayout {
     DatePicker issuedDate = new DatePicker("Issued Date");
     IntegerField accessLevel = new IntegerField("Access Level");
     TextField fabricator = new TextField("Fabricator");
+    TextField description = new TextField("Description"); // Добавлено для 5-й валидации
     Checkbox isActive = new Checkbox("Is Active");
     ComboBox<Employee> employee = new ComboBox<>("Owner (Employee)");
 
@@ -48,7 +49,16 @@ public class AccessCardForm extends FormLayout {
         // Привязываем остальные поля автоматически по именам
         binder.bindInstanceFields(this);
 
-        add(cardNumber, issuedDate, accessLevel, fabricator, isActive, employee, createButtonsLayout());
+        add(
+                cardNumber,
+                issuedDate,
+                accessLevel,
+                fabricator,
+                description, // Добавлено в лейаут
+                isActive,
+                employee,
+                createButtonsLayout()
+        );
     }
 
     public void setEmployeeItems(List<Employee> employees) {
@@ -85,23 +95,33 @@ public class AccessCardForm extends FormLayout {
     // События (Events) остаются без изменений
     public static abstract class AccessCardFormEvent extends ComponentEvent<AccessCardForm> {
         private AccessCard card;
+
         protected AccessCardFormEvent(AccessCardForm source, AccessCard card) {
             super(source, false);
             this.card = card;
         }
-        public AccessCard getCard() { return card; }
+
+        public AccessCard getCard() {
+            return card;
+        }
     }
 
     public static class SaveEvent extends AccessCardFormEvent {
-        SaveEvent(AccessCardForm source, AccessCard card) { super(source, card); }
+        SaveEvent(AccessCardForm source, AccessCard card) {
+            super(source, card);
+        }
     }
 
     public static class DeleteEvent extends AccessCardFormEvent {
-        DeleteEvent(AccessCardForm source, AccessCard card) { super(source, card); }
+        DeleteEvent(AccessCardForm source, AccessCard card) {
+            super(source, card);
+        }
     }
 
     public static class CloseEvent extends AccessCardFormEvent {
-        CloseEvent(AccessCardForm source) { super(source, null); }
+        CloseEvent(AccessCardForm source) {
+            super(source, null);
+        }
     }
 
     public <T extends ComponentEvent<?>> Registration addListener(Class<T> eventType, ComponentEventListener<T> listener) {

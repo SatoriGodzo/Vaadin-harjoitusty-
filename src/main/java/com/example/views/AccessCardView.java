@@ -57,6 +57,7 @@ public class AccessCardView extends VerticalLayout {
         grid.addColumn(AccessCard::getIssuedDate).setHeader("Issued Date");
         grid.addColumn(AccessCard::getAccessLevel).setHeader("Access Level");
         grid.addColumn(AccessCard::getFabricator).setHeader("Fabricator");
+        grid.addColumn(AccessCard::getDescription).setHeader("Description"); // Новая колонка
         grid.addColumn(card -> card.isActive() ? "Yes" : "No").setHeader("Active");
         grid.addColumn(card -> card.getEmployee() != null ?
                         card.getEmployee().getFirstName() + " " + card.getEmployee().getLastName() : "-")

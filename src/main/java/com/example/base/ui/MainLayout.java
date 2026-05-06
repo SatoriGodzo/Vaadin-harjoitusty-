@@ -4,6 +4,7 @@ import com.example.views.EmployeeView;
 import com.example.views.DepartmentView;
 import com.example.views.AccessCardView;
 import com.example.views.ProjectView;
+import com.example.views.AdvancedSearchView; // Новый импорт
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Unit;
 import com.vaadin.flow.component.applayout.AppLayout;
@@ -58,11 +59,14 @@ public final class MainLayout extends AppLayout {
         var nav = new SideNav();
         nav.setMinWidth(200, Unit.PIXELS);
 
-        // КНОПКИ ПЕРЕХОДА ДЛЯ ВСЕХ ТВОИХ СТРАНИЦ:
+        // КНОПКИ ПЕРЕХОДА:
         nav.addItem(new SideNavItem("Employees", EmployeeView.class, VaadinIcon.USERS.create()));
         nav.addItem(new SideNavItem("Departments", DepartmentView.class, VaadinIcon.BUILDING.create()));
         nav.addItem(new SideNavItem("Access Cards", AccessCardView.class, VaadinIcon.KEY.create()));
         nav.addItem(new SideNavItem("Projects", ProjectView.class, VaadinIcon.BRIEFCASE.create()));
+
+        // КНОПКА ДЛЯ КРИТЕРИИ API (ПОИСК):
+        nav.addItem(new SideNavItem("Advanced Search", AdvancedSearchView.class, VaadinIcon.SEARCH.create()));
 
         // Автоматические пункты меню, если они настроены через аннотации
         MenuConfiguration.getMenuEntries().forEach(entry -> nav.addItem(createSideNavItem(entry)));

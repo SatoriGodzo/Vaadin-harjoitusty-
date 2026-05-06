@@ -10,20 +10,21 @@ public class AccessCard {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank(message = "Card number is mandatory")
+    @NotBlank(message = "Card number is mandatory") // 1
     private String cardNumber;
 
-    @NotNull
+    @NotNull(message = "Issued date is required") // 2
     private LocalDate issuedDate;
 
-    // Используем Integer вместо int, чтобы избежать ошибок при пустом поле
-    @Min(value = 1, message = "Access level must be at least 1")
+    @Min(value = 1, message = "Access level must be at least 1") // 3
     private Integer accessLevel;
 
-    @NotBlank(message = "Fabricator is mandatory")
+    @NotBlank(message = "Fabricator is mandatory") // 4
     private String fabricator;
 
-    // УДАЛЕНО: @AssertTrue (она блокировала сохранение, если isActive = false)
+    @Size(min = 5, message = "Description must be at least 5 characters") // 5 (Пятая!)
+    private String description;
+
     private boolean isActive;
 
     @OneToOne(mappedBy = "accessCard")
@@ -40,6 +41,8 @@ public class AccessCard {
     public void setAccessLevel(Integer accessLevel) { this.accessLevel = accessLevel; }
     public String getFabricator() { return fabricator; }
     public void setFabricator(String fabricator) { this.fabricator = fabricator; }
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
     public boolean isActive() { return isActive; }
     public void setActive(boolean active) { isActive = active; }
     public Employee getEmployee() { return employee; }
