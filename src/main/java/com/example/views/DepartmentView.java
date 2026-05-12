@@ -10,9 +10,11 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
+import jakarta.annotation.security.PermitAll; // ИМПОРТ
 
 @Route(value = "departments", layout = MainLayout.class)
 @PageTitle("Departments")
+@PermitAll // ДОСТУП ДЛЯ ВСЕХ (Admin, User, Super)
 public class DepartmentView extends VerticalLayout {
     private final DepartmentRepository repo;
     private Grid<Department> grid = new Grid<>(Department.class, false);

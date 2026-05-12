@@ -25,7 +25,7 @@ public class AccessCardForm extends FormLayout {
     DatePicker issuedDate = new DatePicker("Issued Date");
     IntegerField accessLevel = new IntegerField("Access Level");
     TextField fabricator = new TextField("Fabricator");
-    TextField description = new TextField("Description"); // Добавлено для 5-й валидации
+    TextField description = new TextField("Description");
     Checkbox isActive = new Checkbox("Is Active");
     ComboBox<Employee> employee = new ComboBox<>("Owner (Employee)");
 
@@ -40,13 +40,11 @@ public class AccessCardForm extends FormLayout {
 
         employee.setItemLabelGenerator(emp -> emp.getFirstName() + " " + emp.getLastName());
 
-        // --- ВОТ ТУТ РЕШЕНИЕ ---
-        // Явно связываем чекбокс, чтобы Binder не запутался в именах
+        // Явное связывание для isActive
         binder.forField(isActive)
                 .bind(AccessCard::isActive, AccessCard::setActive);
-        // -----------------------
 
-        // Привязываем остальные поля автоматически по именам
+        // Автоматическая привязка остальных полей
         binder.bindInstanceFields(this);
 
         add(
@@ -54,7 +52,7 @@ public class AccessCardForm extends FormLayout {
                 issuedDate,
                 accessLevel,
                 fabricator,
-                description, // Добавлено в лейаут
+                description,
                 isActive,
                 employee,
                 createButtonsLayout()
@@ -77,14 +75,25 @@ public class AccessCardForm extends FormLayout {
         return new HorizontalLayout(save, delete, close);
     }
 
+    /**
+     * ИСПРАВЛЕННЫЙ МЕТОД:
+     * Обеспечивает работу CRUD для связи 1:1 со стороны карты.
+     */
     private void validateAndSave() {
         try {
-            // writeBean копирует значения из полей формы в объект Card
-            binder.writeBean(binder.getBean());
-            fireEvent(new SaveEvent(this, binder.getBean()));
+            AccessCard card = binder.getBean();
+            // Копируем данные из UI в объект
+            binder.writeBean(card);
+
+            // Синхронизация: если в форме выбран сотрудник, привязываем карту к нему.
+            // Без этого в БД связь не обновится, так как AccessCard — mappedBy сторона.
+            if (card.getEmployee() != null) {
+                card.getEmployee().setAccessCard(card);
+            }
+
+            fireEvent(new SaveEvent(this, card));
         } catch (ValidationException e) {
-            // Если данные невалидны (например, номер карты пустой),
-            // поля подцветятся красным, и сохранение не пойдет дальше
+            // Ошибки валидации подцветят поля в интерфейсе
         }
     }
 
@@ -92,7 +101,7 @@ public class AccessCardForm extends FormLayout {
         binder.setBean(card);
     }
 
-    // События (Events) остаются без изменений
+    // --- События (Events) ---
     public static abstract class AccessCardFormEvent extends ComponentEvent<AccessCardForm> {
         private AccessCard card;
 

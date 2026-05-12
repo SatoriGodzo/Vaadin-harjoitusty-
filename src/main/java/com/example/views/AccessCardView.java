@@ -12,11 +12,13 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
+import jakarta.annotation.security.RolesAllowed; // ИМПОРТ ДЛЯ ОГРАНИЧЕНИЯ РОЛЕЙ
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Route(value = "cards", layout = MainLayout.class)
 @PageTitle("Access Cards")
+@RolesAllowed("ADMIN") // admin only
 public class AccessCardView extends VerticalLayout {
 
     private final AccessCardRepository repository;
@@ -57,7 +59,7 @@ public class AccessCardView extends VerticalLayout {
         grid.addColumn(AccessCard::getIssuedDate).setHeader("Issued Date");
         grid.addColumn(AccessCard::getAccessLevel).setHeader("Access Level");
         grid.addColumn(AccessCard::getFabricator).setHeader("Fabricator");
-        grid.addColumn(AccessCard::getDescription).setHeader("Description"); // Новая колонка
+        grid.addColumn(AccessCard::getDescription).setHeader("Description");
         grid.addColumn(card -> card.isActive() ? "Yes" : "No").setHeader("Active");
         grid.addColumn(card -> card.getEmployee() != null ?
                         card.getEmployee().getFirstName() + " " + card.getEmployee().getLastName() : "-")
@@ -69,16 +71,12 @@ public class AccessCardView extends VerticalLayout {
     private void saveCard(AccessCardForm.SaveEvent event) {
         AccessCard card = event.getCard();
         Employee owner = card.getEmployee();
-
-        // Сначала сохраняем карту, чтобы у нее появился ID
         repository.save(card);
 
         if (owner != null) {
-            // Привязываем карту к сотруднику и сохраняем его
             owner.setAccessCard(card);
             employeeRepository.save(owner);
         }
-
         updateList();
         closeEditor();
     }
@@ -86,12 +84,10 @@ public class AccessCardView extends VerticalLayout {
     private void deleteCard(AccessCardForm.DeleteEvent event) {
         AccessCard card = event.getCard();
         Employee owner = card.getEmployee();
-
         if (owner != null) {
             owner.setAccessCard(null);
             employeeRepository.save(owner);
         }
-
         repository.delete(card);
         updateList();
         closeEditor();

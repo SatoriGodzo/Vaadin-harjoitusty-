@@ -27,6 +27,7 @@ public class Employee {
     @NotBlank(message = "Osoite puuttuu")
     private String address;
 
+    // ВАЖНО: cascade позволяет сохранять/обновлять карту вместе с сотрудником
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "access_card_id", referencedColumnName = "id")
     private AccessCard accessCard;
@@ -35,7 +36,6 @@ public class Employee {
     @JoinColumn(name = "department_id")
     private Department department;
 
-    // ИСПРАВЛЕНО: Добавлен FetchType.EAGER, чтобы Grid не выдавал ошибку
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "employee_projects",
@@ -46,20 +46,41 @@ public class Employee {
     // Getters and Setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
+
     public String getFirstName() { return firstName; }
     public void setFirstName(String firstName) { this.firstName = firstName; }
+
     public String getLastName() { return lastName; }
     public void setLastName(String lastName) { this.lastName = lastName; }
+
     public String getEmail() { return email; }
     public void setEmail(String email) { this.email = email; }
+
     public int getAge() { return age; }
     public void setAge(int age) { this.age = age; }
+
     public String getAddress() { return address; }
     public void setAddress(String address) { this.address = address; }
-    public AccessCard getAccessCard() { return accessCard; }
-    public void setAccessCard(AccessCard accessCard) { this.accessCard = accessCard; }
+
+    public AccessCard getAccessCard() {
+        return accessCard;
+    }
+
+    /**
+     * ИСПРАВЛЕННЫЙ СЕТТЕР:
+     * Устанавливает двустороннюю связь. Это критично для того,
+     * чтобы карта "узнала" о владельце в момент создания сотрудника.
+     */
+    public void setAccessCard(AccessCard accessCard) {
+        this.accessCard = accessCard;
+        if (accessCard != null) {
+            accessCard.setEmployee(this);
+        }
+    }
+
     public Department getDepartment() { return department; }
     public void setDepartment(Department department) { this.department = department; }
+
     public List<Project> getProjects() { return projects; }
     public void setProjects(List<Project> projects) { this.projects = projects; }
 }

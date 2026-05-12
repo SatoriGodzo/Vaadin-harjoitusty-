@@ -9,12 +9,15 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
+import jakarta.annotation.security.RolesAllowed;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Route(value = "employees", layout = MainLayout.class)
+@RolesAllowed("ROLE_ADMIN")
 @PageTitle("Employees | CRUD")
 public class EmployeeView extends VerticalLayout {
 
@@ -38,19 +41,15 @@ public class EmployeeView extends VerticalLayout {
         setSizeFull();
         configureGrid();
 
-        // Создаем форму один раз при инициализации
         form = new EmployeeForm(
                 departmentRepository.findAll(),
-                new ArrayList<>(), // Списки обновим ниже
+                new ArrayList<>(),
                 projectRepository.findAll()
         );
         form.setWidth("25em");
 
-        form.addEmployeeFormListener(EmployeeForm.SaveEvent.class, e -> {
-            repository.save(e.getEmployee());
-            updateList();
-            closeEditor();
-        });
+        // Используем исправленный метод для сохранения
+        form.addEmployeeFormListener(EmployeeForm.SaveEvent.class, e -> saveEmployee(e.getEmployee()));
 
         form.addEmployeeFormListener(EmployeeForm.DeleteEvent.class, e -> {
             repository.delete(e.getEmployee());
@@ -73,6 +72,44 @@ public class EmployeeView extends VerticalLayout {
         closeEditor();
     }
 
+    /**
+     * Исправленная логика сохранения для One-to-One связи.
+     * Принудительно прошивает существующую карту в нового сотрудника.
+     */
+    @Transactional
+    private void saveEmployee(Employee employee) {
+        // 1. Сохраняем "голого" сотрудника, чтобы база выдала ему ID
+        AccessCard selectedTrackedCard = employee.getAccessCard();
+        employee.setAccessCard(null);
+
+        // saveAndFlush принудительно отправляет INSERT в базу прямо сейчас
+        Employee savedEmployee = repository.saveAndFlush(employee);
+
+        // 2. Если в форме была выбрана существующая карта
+        if (selectedTrackedCard != null) {
+            // Достаем ее из БД заново в текущую транзакцию
+            AccessCard cardFromDb = cardRepository.findById(selectedTrackedCard.getId()).orElse(null);
+
+            if (cardFromDb != null) {
+                // Если карта раньше была у другого — отвязываем (защита 1:1)
+                if (cardFromDb.getEmployee() != null && !cardFromDb.getEmployee().equals(savedEmployee)) {
+                    cardFromDb.getEmployee().setAccessCard(null);
+                }
+
+                // Шьем связь жестко с двух сторон
+                savedEmployee.setAccessCard(cardFromDb);
+                cardFromDb.setEmployee(savedEmployee);
+
+                // Сначала обновляем карту, потом обновляем сотрудника
+                cardRepository.saveAndFlush(cardFromDb);
+                repository.saveAndFlush(savedEmployee);
+            }
+        }
+
+        updateList();
+        closeEditor();
+    }
+
     private void configureGrid() {
         grid.setSizeFull();
         grid.addColumn(Employee::getFirstName).setHeader("First Name");
@@ -80,10 +117,18 @@ public class EmployeeView extends VerticalLayout {
         grid.addColumn(Employee::getEmail).setHeader("Email");
         grid.addColumn(Employee::getAge).setHeader("Age");
         grid.addColumn(Employee::getAddress).setHeader("Address");
-        grid.addColumn(emp -> emp.getAccessCard() != null ? emp.getAccessCard().getCardNumber() : "-").setHeader("Card (1:1)");
-        grid.addColumn(emp -> emp.getDepartment() != null ? emp.getDepartment().getName() : "-").setHeader("Dept (1:N)");
+
+        // Отображение номера карты
+        grid.addColumn(emp -> emp.getAccessCard() != null ?
+                emp.getAccessCard().getCardNumber() : "-").setHeader("Card (1:1)");
+
+        grid.addColumn(emp -> emp.getDepartment() != null ?
+                emp.getDepartment().getName() : "-").setHeader("Dept (1:N)");
+
         grid.addColumn(emp -> emp.getProjects() == null ? "" :
-                        emp.getProjects().stream().map(Project::getProjectName).collect(Collectors.joining(", ")))
+                        emp.getProjects().stream()
+                                .map(Project::getProjectName)
+                                .collect(Collectors.joining(", ")))
                 .setHeader("Projects (M:N)");
 
         grid.asSingleSelect().addValueChangeListener(event -> editEmployee(event.getValue()));
@@ -97,7 +142,6 @@ public class EmployeeView extends VerticalLayout {
         if (employee == null) {
             closeEditor();
         } else {
-            // ПЕРЕД открытием формы обновляем список доступных карт
             updateAvailableCards(employee);
             form.setEmployee(employee);
             form.setVisible(true);
@@ -105,13 +149,12 @@ public class EmployeeView extends VerticalLayout {
     }
 
     private void updateAvailableCards(Employee currentEmployee) {
-        // 1. Берем все карты из базы
         List<AccessCard> allCards = cardRepository.findAll();
 
-        // 2. Оставляем только те, что не привязаны НИ К КОМУ,
-        //    ЛИБО привязаны именно к текущему редактируемому сотруднику
+        // Показываем только свободные карты или ту, что уже у этого сотрудника
         List<AccessCard> availableCards = allCards.stream()
-                .filter(card -> card.getEmployee() == null || card.getEmployee().equals(currentEmployee))
+                .filter(card -> card.getEmployee() == null ||
+                        (currentEmployee.getId() != null && card.getEmployee().getId().equals(currentEmployee.getId())))
                 .collect(Collectors.toList());
 
         form.setAvailableCards(availableCards);
