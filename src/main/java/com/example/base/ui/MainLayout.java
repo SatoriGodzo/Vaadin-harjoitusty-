@@ -4,6 +4,7 @@ import com.example.data.User;
 import com.example.data.UserRepository;
 import com.example.views.*;
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.applayout.DrawerToggle;
 import com.vaadin.flow.component.avatar.Avatar;
@@ -16,18 +17,20 @@ import com.vaadin.flow.component.html.Header;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.*;
+import com.vaadin.flow.component.select.Select;
 import com.vaadin.flow.component.sidenav.SideNav;
 import com.vaadin.flow.component.sidenav.SideNavItem;
 import com.vaadin.flow.router.Layout;
 import com.vaadin.flow.server.StreamResource;
+import com.vaadin.flow.server.VaadinSession;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import com.vaadin.flow.spring.security.AuthenticationContext;
-import jakarta.annotation.security.PermitAll;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 
 import java.io.ByteArrayInputStream;
+import java.util.Locale;
 import java.util.Optional;
 
 @Layout
@@ -36,11 +39,14 @@ import java.util.Optional;
 public final class MainLayout extends AppLayout {
 
     private final AuthenticationContext authContext;
-    private final UserRepository userRepository; // Добавили репозиторий
+    private final UserRepository userRepository;
 
     public MainLayout(AuthenticationContext authContext, UserRepository userRepository) {
         this.authContext = authContext;
-        this.userRepository = userRepository; // Инициализируем
+        this.userRepository = userRepository;
+
+        // Istunnon vahvistus: jotta kieltä ei nollata, ku reload()
+        checkAndApplySessionLocale();
 
         setPrimarySection(Section.DRAWER);
 
@@ -55,6 +61,13 @@ public final class MainLayout extends AppLayout {
         drawerContent.add(createApplicationFooter());
 
         addToDrawer(drawerContent);
+    }
+
+    private void checkAndApplySessionLocale() {
+        Locale sessionLocale = VaadinSession.getCurrent().getLocale();
+        if (sessionLocale != null) {
+            UI.getCurrent().setLocale(sessionLocale);
+        }
     }
 
     private Component createApplicationHeader() {
@@ -73,13 +86,33 @@ public final class MainLayout extends AppLayout {
         var left = new HorizontalLayout(drawerToggle, icon, appName);
         left.setAlignItems(FlexComponent.Alignment.CENTER);
 
-        // ИСПРАВЛЕННАЯ ЛОГИКА: Безопасное получение имени пользователя
+        // --- KIELIVALINNAN LOGIIKKA ---
+        Select<Locale> languageSelect = new Select<>();
+        languageSelect.setItems(new Locale("en"), new Locale("fi"));
+        languageSelect.setItemLabelGenerator(l -> l.getLanguage().toUpperCase());
+
+        //Nykyisen arvon asettaminen käyttöliittymästä
+        languageSelect.setValue(UI.getCurrent().getLocale());
+
+        languageSelect.addValueChangeListener(e -> {
+            if (e.isFromClient()) {
+                // Tallenna valinta kaikkialle
+                UI.getCurrent().setLocale(e.getValue());
+                VaadinSession.getCurrent().setLocale(e.getValue());
+                // Sivun lataaminen uudelleen käännöksen soveltamiseksi
+                UI.getCurrent().getPage().reload();
+            }
+        });
+        languageSelect.setWidth("80px");
+        languageSelect.getStyle().set("margin-right", "10px");
+
+        // Turvallinen käyttäjänimen hankinta
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String currentUsername = (auth != null && auth.isAuthenticated() && !auth.getName().equals("anonymousUser"))
                 ? auth.getName()
                 : "Guest";
 
-        // ЛОГИКА АВАТАРКИ
+        // AVATAR LOGIC
         Avatar userAvatar = new Avatar(currentUsername);
         if (!currentUsername.equals("Guest")) {
             Optional<User> userMaybe = userRepository.findByUsername(currentUsername);
@@ -96,14 +129,13 @@ public final class MainLayout extends AppLayout {
         var userName = new Span("User: " + currentUsername);
         userName.addClassNames(LumoUtility.FontSize.SMALL, LumoUtility.TextColor.SECONDARY);
 
-        var logoutButton = new Button("Logout", e -> authContext.logout());
+        // Uloskirjautumispainike (käännettävä)
+        var logoutButton = new Button(getTranslation("logout"), e -> authContext.logout());
         logoutButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_ERROR);
-
-        // Кнопка выхода видна только авторизованным
         logoutButton.setVisible(auth != null && auth.isAuthenticated() && !auth.getName().equals("anonymousUser"));
 
-        // Добавили аватарку в правую часть
-        var right = new HorizontalLayout(userAvatar, userName, logoutButton);
+        // Kokoamme oikean osan
+        var right = new HorizontalLayout(languageSelect, userAvatar, userName, logoutButton);
         right.setAlignItems(FlexComponent.Alignment.CENTER);
         right.setSpacing(true);
         right.getStyle().set("margin-right", "var(--lumo-space-m)");
@@ -130,50 +162,49 @@ public final class MainLayout extends AppLayout {
         var nav = new SideNav();
 
         nav.addItem(new SideNavItem(
-                "Home",
+                getTranslation("menu.home"),
                 HomeView.class,
                 VaadinIcon.HOME.create()
         ));
 
-        // Добавляем Профиль в меню
         nav.addItem(new SideNavItem(
-                "My Profile",
+                getTranslation("menu.profile"),
                 ProfileView.class,
                 VaadinIcon.USER.create()
         ));
 
         nav.addItem(new SideNavItem(
-                "Advanced Search",
+                getTranslation("menu.search"),
                 AdvancedSearchView.class,
                 VaadinIcon.SEARCH.create()
         ));
 
         nav.addItem(new SideNavItem(
-                "Employees",
+                getTranslation("menu.employees"),
                 EmployeeView.class,
                 VaadinIcon.USERS.create()
         ));
 
         nav.addItem(new SideNavItem(
-                "Departments",
+                getTranslation("menu.departments"),
                 DepartmentView.class,
                 VaadinIcon.BUILDING.create()
         ));
 
         nav.addItem(new SideNavItem(
-                "Projects",
+                getTranslation("menu.projects"),
                 ProjectView.class,
                 VaadinIcon.BRIEFCASE.create()
         ));
 
         nav.addItem(new SideNavItem(
-                "Manage Users",
+                getTranslation("menu.users"),
                 UserManagementView.class,
                 VaadinIcon.COG.create()
         ));
 
         nav.addItem(new SideNavItem(
-                "Access Cards",
+                getTranslation("menu.cards"),
                 AccessCardView.class,
                 VaadinIcon.KEY.create()
         ));
@@ -188,21 +219,25 @@ public final class MainLayout extends AppLayout {
                 .set("font-size", "var(--lumo-font-size-s)")
                 .set("color", "var(--lumo-primary-text-color)");
 
-        var author = new Span("Created by: Aleksei Egorov");
+        // käännös: käytämme gettranslationia kirjoittajalle
+        var author = new Span(getTranslation("footer.created-by") + ": Aleksei Egorov");
         author.getStyle()
                 .set("font-size", "var(--lumo-font-size-xxs)")
                 .set("font-variant", "small-caps")
                 .set("color", "var(--lumo-secondary-text-color)");
 
-        var copyright = new Span("© 2026 All Rights Reserved");
+        // käännös: käytämme gettranslation tekijänoikeuksien
+        var copyright = new Span("© 2026 " + getTranslation("footer.rights"));
         copyright.addClassNames(LumoUtility.FontSize.XXSMALL, LumoUtility.TextColor.TERTIARY);
 
-        var helpLink = new Anchor("mailto:support@company.com", "Support");
+        // käännös: käytämme gettranslation tukea
+        var helpLink = new Anchor("mailto:support@company.com", getTranslation("footer.support"));
         helpLink.getStyle().set("font-size", "var(--lumo-font-size-xxs)");
 
         var footerLayout = new VerticalLayout(appTitle, author, copyright, helpLink);
         footerLayout.setSpacing(false);
         footerLayout.setPadding(true);
+        // täsmennetään FlexComponent.Tasaus kokoamista varten
         footerLayout.setAlignItems(FlexComponent.Alignment.CENTER);
 
         var footer = new Footer(footerLayout);

@@ -6,17 +6,32 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
+import org.springframework.data.domain.AuditorAware;
+import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
-
+import com.vaadin.flow.component.page.Push;
+@Push
+@EnableJpaAuditing // 1.AUDITOINNIN MAHDOLLISTAMINEN
 @SpringBootApplication
 public class Application implements AppShellConfigurator {
 
     public static void main(String[] args) {
         SpringApplication.run(Application.class, args);
+    }
+
+    // 2. PALVELUNTARJOAJAN LISÄÄMINEN NYKYISEN KÄYTTÄJÄN TUNNISTAMISEKSI
+    @Bean
+    public AuditorAware<String> auditorProvider() {
+        return () -> Optional.ofNullable(SecurityContextHolder.getContext().getAuthentication())
+                .filter(Authentication::isAuthenticated)
+                .map(Authentication::getName);
     }
 
     @Bean
@@ -28,31 +43,37 @@ public class Application implements AppShellConfigurator {
             PasswordEncoder passwordEncoder
     ) {
         return args -> {
-            // 1. Создаем трех разных пользователей по заданию
-            if (userRepo.count() == 0) {
-                // Админ
+            // 1. Luomme Admin, jos sitä ei ole.
+            if (!userRepo.existsByUsername("Admin")) {
                 User admin = new User();
                 admin.setUsername("Admin");
                 admin.setHashedValue(passwordEncoder.encode("admin123"));
                 admin.setRoles(Set.of(Role.ADMIN));
                 userRepo.save(admin);
+                System.out.println(">>> Käyttäjä on luotu: Admin");
+            }
 
-                // Обычный юзер
+            // 2. Luomme us, jos sitä ei ole.
+            if (!userRepo.existsByUsername("User")) {
                 User user = new User();
-                user.setUsername("us");
-                user.setHashedValue(passwordEncoder.encode("us"));
+                user.setUsername("User");
+                user.setHashedValue(passwordEncoder.encode("user123"));
                 user.setRoles(Set.of(Role.USER));
                 userRepo.save(user);
+                System.out.println(">>> Käyttäjä on luotu: us");
+            }
 
-                // Супер юзер
+            // 3. Luomme sup, jos sitä ei ole.
+            if (!userRepo.existsByUsername("sup")) {
                 User superUser = new User();
                 superUser.setUsername("sup");
                 superUser.setHashedValue(passwordEncoder.encode("sup"));
                 superUser.setRoles(Set.of(Role.SUPER));
                 userRepo.save(superUser);
+                System.out.println(">>> Käyttäjä on luotu: sup");
             }
 
-            // 2. Тестовые данные для таблиц
+            // 4. Taulukoiden testitiedot (työntekijät, osastot, projektit)
             if (employeeRepo.count() == 0) {
                 Department dept = new Department();
                 dept.setName("IT Support");
@@ -78,7 +99,7 @@ public class Application implements AppShellConfigurator {
                 emp.setProjects(List.of(proj));
 
                 employeeRepo.save(emp);
-                System.out.println(">>> Данные созданы: Admin, User, Super + тестовый сотрудник.");
+                System.out.println(">>> Työntekijöiden ja projektien testitiedot on luotu.");
             }
         };
     }

@@ -59,7 +59,7 @@ public class ProfileView extends VerticalLayout implements AfterNavigationObserv
                         user.setProfilePicture(bytes);
                         userRepository.save(user);
 
-                        // Перезагружаем страницу с параметром в URL
+                        //Uudelleenlastauksen sivun parametri URL
                         UI.getCurrent().getPage().executeJs("window.location.href = 'profile?saved=true';");
                     });
                 });
@@ -71,14 +71,14 @@ public class ProfileView extends VerticalLayout implements AfterNavigationObserv
         add(avatar, upload);
     }
 
-    // Этот метод срабатывает КАЖДЫЙ РАЗ после загрузки страницы
+    // Tämä menetelmä käynnistyy aina, kun sivu ladataan
     @Override
     public void afterNavigation(AfterNavigationEvent event) {
-        // Проверяем, есть ли в URL параметр "saved"
+        // Tarkistaa, jos siellä on "tallennettu" - parametri on URL-osoite
         if (event.getLocation().getQueryParameters().getParameters().containsKey("saved")) {
             Notification.show("The avatar has been updated successfully!", 3000, Notification.Position.BOTTOM_START);
 
-            // Опционально: убираем мусор из URL, чтобы при обычном F5 уведомление не вылезало снова
+            //Valinnainen: poistamme roskat URL-osoitteesta, jotta ilmoitus ei ponnahda uudelleen esiin tavallisella F5: llä
             UI.getCurrent().getPage().executeJs("window.history.replaceState({}, '', 'profile');");
         }
     }

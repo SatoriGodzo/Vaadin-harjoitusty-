@@ -21,11 +21,11 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     @Override
     @Transactional
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        // Достаем юзера из Optional, а если его там нет — сразу кидаем ошибку
+        // Otamme käyttäjän pois valinnaisesta, ja jos hän ei ole siellä, heitämme heti virheen.
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("No user present with username: " + username));
 
-        // Дальше твой старый код (уже без if (user == null), так как orElseThrow всё проверил)
+        // Sitten vanha koodi (jo ilman jos (user = = null), koska orElseThrow tarkistettu kaikki)
         return new org.springframework.security.core.userdetails.User(
                 user.getUsername(),
                 user.getHashedValue(),

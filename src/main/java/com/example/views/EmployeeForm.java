@@ -22,19 +22,20 @@ import java.util.HashSet;
 import java.util.List;
 
 public class EmployeeForm extends FormLayout {
-    TextField firstName = new TextField("First name");
-    TextField lastName = new TextField("Last name");
-    EmailField email = new EmailField("Email");
-    IntegerField age = new IntegerField("Age");
-    TextField address = new TextField("Address");
+    // Kenttien luominen. Poistamme tekstin sulkeissa, koska asetamme sen gettranslationin kautta konstruktorissa.
+    TextField firstName = new TextField();
+    TextField lastName = new TextField();
+    EmailField email = new EmailField();
+    IntegerField age = new IntegerField();
+    TextField address = new TextField();
 
-    ComboBox<Department> department = new ComboBox<>("Department");
-    ComboBox<AccessCard> accessCard = new ComboBox<>("Access Card");
-    MultiSelectComboBox<Project> projects = new MultiSelectComboBox<>("Projects");
+    ComboBox<Department> department = new ComboBox<>();
+    ComboBox<AccessCard> accessCard = new ComboBox<>();
+    MultiSelectComboBox<Project> projects = new MultiSelectComboBox<>();
 
-    Button save = new Button("Save");
-    Button delete = new Button("Delete");
-    Button close = new Button("Cancel");
+    Button save = new Button();
+    Button delete = new Button();
+    Button close = new Button();
 
     Binder<Employee> binder = new BeanValidationBinder<>(Employee.class);
 
@@ -45,6 +46,21 @@ public class EmployeeForm extends FormLayout {
         this.getStyle().set("border", "1px solid var(--lumo-contrast-10pct)");
         this.getStyle().set("background-color", "var(--lumo-base-color)");
         this.getStyle().set("border-radius", "var(--lumo-border-radius-m)");
+
+        // УСТАНОВКА ПЕРЕВОДОВ ДЛЯ ПОЛЕЙ (Берем те же ключи, что и для таблицы)
+        firstName.setLabel(getTranslation("emp.grid.first-name"));
+        lastName.setLabel(getTranslation("emp.grid.last-name"));
+        email.setLabel(getTranslation("emp.grid.email"));
+        age.setLabel(getTranslation("emp.grid.age"));
+        address.setLabel(getTranslation("emp.grid.address"));
+        department.setLabel(getTranslation("emp.grid.dept"));
+        accessCard.setLabel(getTranslation("emp.grid.card"));
+        projects.setLabel(getTranslation("emp.grid.projects"));
+
+        // УСТАНОВКА ПЕРЕВОДОВ ДЛЯ КНОПОК
+        save.setText(getTranslation("form.save"));
+        delete.setText(getTranslation("form.delete"));
+        close.setText(getTranslation("form.cancel"));
 
         department.setItems(departments);
         department.setItemLabelGenerator(Department::getName);
@@ -70,26 +86,25 @@ public class EmployeeForm extends FormLayout {
     }
 
     /**
-     * ИСПРАВЛЕННЫЙ МЕТОД:
-     * Добавлена обработка ValidationException и принудительная синхронизация 1:1
+     * Lisätty käsittely ValidationException ja pakotettu synkronointi 1:1
      */
     private void validateAndSave() {
         try {
             Employee employee = binder.getBean();
-            // 1. Сначала записываем данные из всех полей (включая ComboBox карты) в объект
+            // 1. ensin kirjoitamme tiedot kaikista kentistä (mukaan lukien kartan Kombobox) kohteeseen
             binder.writeBean(employee);
 
-            // 2. Устанавливаем двустороннюю связь
+            // 2. Luomme kaksisuuntaista viestintää
             if (employee.getAccessCard() != null) {
-                // Говорим карте, кто её новый владелец
+                // Kerromme kartalle, kuka sen uusi omistaja on
                 employee.getAccessCard().setEmployee(employee);
             }
 
-            // 3. Сообщаем View, что объект готов к сохранению в БД
+            // 3.Näkymän ilmoittaminen siitä, että objekti on valmis tallennettavaksi tietokantaan.
             fireEvent(new SaveEvent(this, employee));
 
         } catch (ValidationException e) {
-            // Ошибки валидации (например, возраст < 18) отобразятся в UI автоматически
+            // Validointivirheet (esimerkiksi ikä < 18) näkyvät käyttöliittymässä automaattisesti.
         }
     }
 
@@ -111,7 +126,7 @@ public class EmployeeForm extends FormLayout {
         binder.setBean(employee);
     }
 
-    // СОБЫТИЯ (без изменений)
+
     public static abstract class EmployeeFormEvent extends ComponentEvent<EmployeeForm> {
         private Employee employee;
         protected EmployeeFormEvent(EmployeeForm source, Employee employee) {

@@ -4,21 +4,31 @@ import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.login.LoginForm;
+import com.vaadin.flow.component.login.LoginI18n;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
-import com.vaadin.flow.router.PageTitle;
+import com.vaadin.flow.router.HasDynamicTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 
 @Route("login")
-@PageTitle("Login | Company Manager")
 @AnonymousAllowed
-public class LoginView extends VerticalLayout implements BeforeEnterObserver {
+public class LoginView extends VerticalLayout implements BeforeEnterObserver, HasDynamicTitle {
 
     private final LoginForm login = new LoginForm();
     private final VerticalLayout successBox = new VerticalLayout();
+
+    // Поля для ссылок и текстов, чтобы менять их динамически
+    private final Span successText = new Span();
+    private final Span noAccountText = new Span();
+    private final Anchor registerLink = new Anchor("registration", "");
+
+    @Override
+    public String getPageTitle() {
+        return getTranslation("login.page.title");
+    }
 
     public LoginView() {
         setSizeFull();
@@ -27,8 +37,25 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
 
         login.setAction("login");
 
-        // Блок уведомления об успехе
-        Span successText = new Span("✔ Registration successful! Please log in.");
+        // --- LOKALISOINTI MUODOSSA (Käyttäjätunnus, Salasana, jne.) ---
+        LoginI18n i18n = LoginI18n.createDefault();
+
+        LoginI18n.Form i18nForm = i18n.getForm();
+        i18nForm.setTitle(getTranslation("login.form.title"));
+        i18nForm.setUsername(getTranslation("login.form.username"));
+        i18nForm.setPassword(getTranslation("login.form.password"));
+        i18nForm.setSubmit(getTranslation("login.form.submit"));
+        i18nForm.setForgotPassword(getTranslation("login.form.forgot-password"));
+
+        LoginI18n.ErrorMessage i18nErrorMessage = i18n.getErrorMessage();
+        i18nErrorMessage.setTitle(getTranslation("login.error.title"));
+        i18nErrorMessage.setMessage(getTranslation("login.error.message"));
+
+        login.setI18n(i18n);
+        // -----------------------------------------------------
+
+        // Onnistumisilmoitusten Lohko
+        successText.setText(getTranslation("login.success.registration"));
         successBox.add(successText);
         successBox.setVisible(false);
         successBox.setWidth("360px");
@@ -42,21 +69,18 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
         successBox.getStyle().set("padding", "10px");
         successBox.getStyle().set("margin-bottom", "20px");
 
-        // ССЫЛКА НА РЕГИСТРАЦИЮ
-        Span text = new Span("Don't have an account? ");
-        Anchor registerLink = new Anchor("registration", "Register here");
+        // LINKKI ILMOITTAUTUMISEEN
+        noAccountText.setText(getTranslation("login.no-account"));
+        registerLink.setText(getTranslation("login.register-here"));
 
-        // --- МЯГКИЙ И ЗАМЕТНЫЙ СТИЛЬ ---
-        registerLink.getStyle().set("color", "#006af5"); // Красивый синий (фирменный Vaadin)
-        registerLink.getStyle().set("font-weight", "600"); // Умеренно жирный
-        registerLink.getStyle().set("text-decoration", "none"); // Убираем постоянную линию
-        registerLink.getStyle().set("font-size", "1.1em"); // Оставляем чуть крупнее
-// Добавим эффект при наведении, чтобы было понятно, что это ссылка
+        registerLink.getStyle().set("color", "#006af5");
+        registerLink.getStyle().set("font-weight", "600");
+        registerLink.getStyle().set("text-decoration", "none");
+        registerLink.getStyle().set("font-size", "1.1em");
         registerLink.getElement().getStyle().set("cursor", "pointer");
-// -------------------------------
 
-        HorizontalLayout registrationLayout = new HorizontalLayout(text, registerLink);
-        registrationLayout.setSpacing(true); // Добавим зазор между текстом и ссылкой
+        HorizontalLayout registrationLayout = new HorizontalLayout(noAccountText, registerLink);
+        registrationLayout.setSpacing(true);
         registrationLayout.setAlignItems(Alignment.BASELINE);
 
         add(

@@ -40,11 +40,11 @@ public class AccessCardForm extends FormLayout {
 
         employee.setItemLabelGenerator(emp -> emp.getFirstName() + " " + emp.getLastName());
 
-        // Явное связывание для isActive
+        // Isactiven nimenomainen sitovuus
         binder.forField(isActive)
                 .bind(AccessCard::isActive, AccessCard::setActive);
 
-        // Автоматическая привязка остальных полей
+        // Muiden kenttien automaattinen Sidonta
         binder.bindInstanceFields(this);
 
         add(
@@ -76,24 +76,24 @@ public class AccessCardForm extends FormLayout {
     }
 
     /**
-     * ИСПРАВЛЕННЫЙ МЕТОД:
-     * Обеспечивает работу CRUD для связи 1:1 со стороны карты.
+     * KIINTEÄ MENETELMÄ:
+     * Tarjoaa CRUD-toiminnan 1: 1-viestintään kortin puolelta.
      */
     private void validateAndSave() {
         try {
             AccessCard card = binder.getBean();
-            // Копируем данные из UI в объект
+            // Tietojen kopiointi käyttöliittymästä objektiin
             binder.writeBean(card);
 
-            // Синхронизация: если в форме выбран сотрудник, привязываем карту к нему.
-            // Без этого в БД связь не обновится, так как AccessCard — mappedBy сторона.
+            // Synkronointi: Jos työntekijä valitaan lomakkeeseen, linkitämme kortin häneen.
+            // Ilman tätä tietokannan yhteyttä ei päivitetä, koska kulkukortti on mapped by side.
             if (card.getEmployee() != null) {
                 card.getEmployee().setAccessCard(card);
             }
 
             fireEvent(new SaveEvent(this, card));
         } catch (ValidationException e) {
-            // Ошибки валидации подцветят поля в интерфейсе
+            // Validointivirheet värittävät käyttöliittymän kentät
         }
     }
 
@@ -101,7 +101,7 @@ public class AccessCardForm extends FormLayout {
         binder.setBean(card);
     }
 
-    // --- События (Events) ---
+    // --- Tapahtumat (Events) ---
     public static abstract class AccessCardFormEvent extends ComponentEvent<AccessCardForm> {
         private AccessCard card;
 

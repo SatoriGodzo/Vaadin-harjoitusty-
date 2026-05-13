@@ -26,15 +26,15 @@ public class Project {
     @Size(min = 10, message = "Description must be at least 10 characters")
     private String description;
 
-    // СВЯЗЬ M:N
-    // ВАЖНО: Если в Project стоит mappedBy, значит владельцем связи является Employee.
-    // Убедись, что в Employee.java есть поле @ManyToMany List<Project> projects;
+    // YHTEYS M: N
+    // Tärkeää: jos projekti on kartoitettu, yhteyden omistaja on työntekijä.
+
     @ManyToMany(mappedBy = "projects", fetch = FetchType.EAGER)
     private Set<Employee> employees = new HashSet<>();
 
-    // Геттеры и сеттеры (не забудь поменять на Set)
+
     public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; } // Добавь сеттер для ID, если его не было
+    public void setId(Long id) { this.id = id; }
 
     public String getProjectName() { return projectName; }
     public void setProjectName(String projectName) { this.projectName = projectName; }

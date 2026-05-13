@@ -19,7 +19,7 @@ import jakarta.annotation.security.PermitAll; // ИМПОРТ ДЛЯ ДОСТУ�
 
 @Route(value = "advanced-search", layout = MainLayout.class)
 @PageTitle("Advanced Search | Criteria API")
-@PermitAll // РАЗРЕШЕНО ВСЕМ, КТО ВВЕЛ ПАРОЛЬ (Admin, User, Super)
+@PermitAll // JOKAINEN, JOKA ON SYÖTETTY SALASANA ON SALLITTUA.(Admin, User, Super)
 public class AdvancedSearchView extends VerticalLayout {
 
     private final EmployeeService employeeService;

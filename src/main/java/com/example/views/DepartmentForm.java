@@ -47,21 +47,21 @@ public class DepartmentForm extends FormLayout {
     }
 
     private void validateAndSave() {
-        Department dept = binder.getBean(); // Получаем текущий объект (старый или новый)
+        Department dept = binder.getBean(); // Saada nykyinen objekti (vanha tai uusi)
         if (dept == null) return;
 
         try {
-            // Пытаемся записать данные из полей ввода в объект
+            // Yritämme kirjoittaa tietoja syöttökentistä objektiin
             binder.writeBean(dept);
             // Если ошибок нет, вызываем событие сохранения
             fireEvent(new SaveEvent(this, dept));
         } catch (ValidationException e) {
-            // Если данные невалидны, поля подцветятся красным, и мы ничего не сохраним
+            // Jos tiedot ovat virheellisiä, kentät muuttuvat punaisiksi, emmekä tallenna mitään.
         }
     }
 
     public void setDepartment(Department dept) {
-        binder.setBean(dept); // Важно: привязываем конкретный объект к биндеру
+        binder.setBean(dept); // Tärkeää: linkitämme tietyn kohteen sideaineeseen
     }
 
     // События

@@ -8,16 +8,16 @@ import com.vaadin.flow.router.ErrorParameter;
 import com.vaadin.flow.router.HasErrorParameter;
 import jakarta.servlet.http.HttpServletResponse;
 
-// ВАЖНО: Добавляем @Tag и наследуем Div, иначе Vaadin его не видит как обработчик!
+// Tärkeää: Lisää @ - tunniste ja peri Div, muuten Vaadin ei näe sitä käsittelijänä!
 @Tag(Tag.DIV)
 public class AccessDeniedExceptionHandler extends Div implements HasErrorParameter<AccessDeniedException> {
 
     @Override
     public int setErrorParameter(BeforeEnterEvent event, ErrorParameter<AccessDeniedException> parameter) {
-        // Лог в консоль, чтобы ты увидел, что мы сюда попали
-        System.out.println("--- ПЕРЕХВАТ 403 СРАБОТАЛ ---");
+        // Kirjaudu sisään konsoliin, jotta näet, että olemme täällä.
+        System.out.println("--- SIEPPAUS 403 ON LAUKAISTU.---");
 
-        // Перенаправляем на твой роут "access-denied"
+        // Uudelleenohjaus reitittimeen "access-denied"
         event.rerouteTo("access-denied");
 
         return HttpServletResponse.SC_FORBIDDEN;

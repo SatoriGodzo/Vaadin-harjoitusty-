@@ -15,7 +15,7 @@ import jakarta.annotation.security.RolesAllowed; // ИМПОРТ
 
 @Route(value = "projects", layout = MainLayout.class)
 @PageTitle("Projects | Company Manager")
-@RolesAllowed({"USER","SUPER","ADMIN"}) // ДОСТУП ТОЛЬКО ДЛЯ USER И SUPER
+@RolesAllowed({"USER","SUPER","ADMIN"})
 public class ProjectView extends VerticalLayout {
     private final ProjectRepository repo;
     private Grid<Project> grid = new Grid<>(Project.class, false);

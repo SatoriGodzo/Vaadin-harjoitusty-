@@ -25,7 +25,7 @@ public class ProjectForm extends FormLayout {
     NumberField budget = new NumberField("Budget");
     TextField description = new TextField("Description");
 
-    // СВЯЗЬ M:N: Выбор сотрудников для проекта
+    // M: N viestintä: työntekijöiden valinta projektiin
     MultiSelectComboBox<Employee> employees = new MultiSelectComboBox<>("Assigned Employees");
 
     Button save = new Button("Save");
@@ -37,9 +37,9 @@ public class ProjectForm extends FormLayout {
     public ProjectForm(List<Employee> allEmployees) {
         addClassName("project-form");
 
-        // Настройка выбора сотрудников
+        // Työntekijöiden Valinnan Määrittäminen
         employees.setItems(allEmployees);
-        employees.setItemLabelGenerator(Employee::getLastName); // Показываем фамилии
+        employees.setItemLabelGenerator(Employee::getLastName); // Näytetään sukunimet
 
         binder.bindInstanceFields(this);
 
@@ -52,17 +52,17 @@ public class ProjectForm extends FormLayout {
 
     public void setProject(Project p) {
         this.project = p;
-        binder.readBean(p); // Загружаем данные объекта в поля
+        binder.readBean(p); // Objektitietojen lataaminen kenttiin
     }
 
     private void validateAndSave() {
         try {
             if (project != null) {
-                binder.writeBean(project); // Записываем данные из полей в объект
+                binder.writeBean(project); // Tietojen kirjoittaminen kentistä objektiin
                 fireEvent(new SaveEvent(this, project));
             }
         } catch (ValidationException e) {
-            // Ошибки валидации покажутся на полях автоматически
+            // Validointivirheet näkyvät kentissä automaattisesti.
         }
     }
 

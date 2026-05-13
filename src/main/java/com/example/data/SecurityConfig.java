@@ -20,16 +20,16 @@ public class SecurityConfig extends VaadinWebSecurity {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        // Устанавливаем вьюху логина
+        // Kirjautumisnäkymän asentaminen
         setLoginView(http, LoginView.class);
 
-        // Базовая настройка Vaadin
+        // Vaadin-Perusasetukset
         super.configure(http);
 
-        // Редирект после успешного входа
+        // Uudelleenohjaus onnistuneen kirjautumisen jälkeen
         http.formLogin(form -> form.defaultSuccessUrl("/", true));
 
-        // Игнорируем CSRF для H2 и регистрации (на всякий случай)
+        // CSRF: n huomiotta jättäminen H2: lle ja rekisteröinnille (kaiken varalta)
         http.csrf(csrf -> csrf
                 .ignoringRequestMatchers(new AntPathRequestMatcher("/h2-console/**"))
                 .ignoringRequestMatchers(new AntPathRequestMatcher("/registration"))
@@ -40,7 +40,7 @@ public class SecurityConfig extends VaadinWebSecurity {
 
     @Override
     public void configure(WebSecurity web) throws Exception {
-        // ВОТ ЭТО ГЛАВНОЕ. Это вырезает регистрацию из-под фильтров охраны совсем.
+        //SE ON PÄÄASIA. Tämä leikkaa rekisteröinnin pois suojaussuodattimien alta kokonaan.
         web.ignoring().requestMatchers(
                 new AntPathRequestMatcher("/registration"),
                 new AntPathRequestMatcher("/line-awesome/**"),

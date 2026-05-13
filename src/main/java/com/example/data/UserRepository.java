@@ -5,9 +5,9 @@ import java.util.Optional;
 
 public interface UserRepository extends JpaRepository<User, Long> {
 
-    // Для логина (UserDetailsServiceImpl его уже использует)
+    // Kirjautumista varten (UserDetailsServiceImpl käyttää sitä jo)
     Optional<User> findByUsername(String username);
 
-    // КРИТИЧНО: Для регистрации, чтобы проверка "User already exists" работала корректно
+    // Kriittinen: rekisteröintiä varten, jotta" käyttäjä on jo olemassa " - tarkistus toimii oikein
     boolean existsByUsername(String username);
 }

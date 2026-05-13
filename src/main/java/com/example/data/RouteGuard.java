@@ -20,14 +20,14 @@ public class RouteGuard implements BeforeEnterListener {
 
         Class<?> target = event.getNavigationTarget();
 
-        // ✅ 1. ПУБЛИЧНЫЕ СТРАНИЦЫ (ВАЖНО — через аннотацию, а не имя класса)
+        // ✅ 1.Julkiset sivut (tärkeää — merkinnän, Ei luokan nimen kautta)
         if (target.isAnnotationPresent(AnonymousAllowed.class)) {
             return;
         }
 
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
-        // ❗ 2. проверка анонимного пользователя (полная и корректная)
+        // ❗ 2. anonyymi käyttäjän vahvistus (täydellinen ja oikea)
         if (auth == null
                 || !auth.isAuthenticated()
                 || auth instanceof AnonymousAuthenticationToken
@@ -37,14 +37,14 @@ public class RouteGuard implements BeforeEnterListener {
             return;
         }
 
-        // ✅ 3. если нет ролей — доступ разрешён
+        // ✅ 3. jos rooleja ei ole, pääsy on sallittu.
         if (!target.isAnnotationPresent(RolesAllowed.class)) {
             return;
         }
 
         RolesAllowed roles = target.getAnnotation(RolesAllowed.class);
 
-        // ✅ 4. проверка ролей
+        // ✅ 4.roolin todentaminen
         boolean allowed = auth.getAuthorities().stream()
                 .anyMatch(a -> {
                     for (String role : roles.value()) {
@@ -56,7 +56,7 @@ public class RouteGuard implements BeforeEnterListener {
                     return false;
                 });
 
-        // ❌ 5. нет доступа → 403
+        // ❌ 5. ei pääsyä → 403
         if (!allowed) {
             event.rerouteTo(AccessDeniedView.class);
         }

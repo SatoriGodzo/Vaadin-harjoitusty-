@@ -20,12 +20,12 @@ import jakarta.annotation.security.PermitAll;
 @PermitAll
 public class HomeView extends VerticalLayout {
 
-    // Внедряем репозитории через конструктор для получения реальных данных
+    // Toteutamme tietovarastoja rakentajan kautta saadaksemme todellista tietoa.
     public HomeView(EmployeeRepository employeeRepo,
                     DepartmentRepository deptRepo,
                     ProjectRepository projectRepo) {
 
-        addClassName("home-view"); // Для CSS (Пункт 3 ТЗ)
+        addClassName("home-view"); //  CSS (kojta 3 )
 
         setSpacing(true);
         setPadding(true);
@@ -33,7 +33,7 @@ public class HomeView extends VerticalLayout {
         setJustifyContentMode(JustifyContentMode.CENTER);
         setMinHeight("80vh");
 
-        // Главная карточка приветствия
+        // Tärkein onnittelukortti
         VerticalLayout card = new VerticalLayout();
         card.addClassNames(
                 LumoUtility.Background.BASE,        // a. Background
@@ -47,28 +47,29 @@ public class HomeView extends VerticalLayout {
         card.setAlignItems(Alignment.CENTER);
 
         var icon = VaadinIcon.CLUSTER.create();
-        icon.addClassName("welcome-icon"); // Для анимации в CSS (Пункт 5 ТЗ)
+        icon.addClassName("welcome-icon"); // CSS-animaatio ( 5 kohta)
         icon.getStyle().set("font-size", "80px");
         icon.getStyle().set("color", "var(--lumo-primary-color)");
 
-        H1 title = new H1("Company Manager Pro");
+        //Käytämme gettranslation otsikko ja kuvaus
+        H1 title = new H1(getTranslation("home.title"));
         title.addClassNames(LumoUtility.FontSize.XXLARGE, LumoUtility.Margin.Top.MEDIUM);
 
-        Paragraph desc = new Paragraph("Welcome! The management system is fully operational. Real-time statistics are shown below.");
+        Paragraph desc = new Paragraph(getTranslation("home.welcome"));
         desc.addClassNames(LumoUtility.TextColor.SECONDARY, LumoUtility.TextAlignment.CENTER);
 
         card.add(icon, title, desc);
 
-        // Получаем РЕАЛЬНЫЕ цифры из базы данных
+        // Saamme oikeat numerot tietokannasta
         String employeesCount = String.valueOf(employeeRepo.count());
         String departmentsCount = String.valueOf(deptRepo.count());
         String projectsCount = String.valueOf(projectRepo.count());
 
-        // Секция статистики
+        // Tilastot-osio käännettävillä merkinnöillä
         HorizontalLayout stats = new HorizontalLayout(
-                createStat("Employees", employeesCount, VaadinIcon.USER),
-                createStat("Departments", departmentsCount, VaadinIcon.BUILDING),
-                createStat("Projects", projectsCount, VaadinIcon.BRIEFCASE)
+                createStat(getTranslation("home.stats.employees"), employeesCount, VaadinIcon.USER),
+                createStat(getTranslation("home.stats.departments"), departmentsCount, VaadinIcon.BUILDING),
+                createStat(getTranslation("home.stats.projects"), projectsCount, VaadinIcon.BRIEFCASE)
         );
         stats.addClassName(LumoUtility.Margin.Top.XLARGE);
         stats.setSpacing(true);
@@ -78,7 +79,7 @@ public class HomeView extends VerticalLayout {
 
     private VerticalLayout createStat(String label, String value, VaadinIcon icon) {
         VerticalLayout v = new VerticalLayout();
-        v.addClassName("stat-item"); // Для CSS эффектов (hover/transition)
+        v.addClassName("stat-item"); // CSS-tehosteita varten (hover/transition)
         v.addClassNames(
                 LumoUtility.Background.CONTRAST_5,
                 LumoUtility.Padding.MEDIUM,

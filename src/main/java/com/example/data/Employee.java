@@ -2,9 +2,17 @@ package com.example.data;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
+import org.springframework.data.annotation.CreatedBy;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
+@EntityListeners(AuditingEntityListener.class) // Включаем "прослушку" аудита
 public class Employee {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -27,7 +35,6 @@ public class Employee {
     @NotBlank(message = "Osoite puuttuu")
     private String address;
 
-    // ВАЖНО: cascade позволяет сохранять/обновлять карту вместе с сотрудником
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "access_card_id", referencedColumnName = "id")
     private AccessCard accessCard;
@@ -43,7 +50,24 @@ public class Employee {
             inverseJoinColumns = @JoinColumn(name = "project_id"))
     private List<Project> projects;
 
-    // Getters and Setters
+    // --- AUDITOINTIKENTÄT (kevät täyttää ne itsessään) ---
+
+    @CreatedBy
+    @Column(updatable = false)
+    private String createdBy;
+
+    @CreatedDate
+    @Column(updatable = false)
+    private LocalDateTime createdDate;
+
+    @LastModifiedBy
+    private String lastModifiedBy;
+
+    @LastModifiedDate
+    private LocalDateTime lastModifiedDate;
+
+    // --- VAKIO GETTERIT JA SETTERIT ---
+
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
@@ -62,15 +86,8 @@ public class Employee {
     public String getAddress() { return address; }
     public void setAddress(String address) { this.address = address; }
 
-    public AccessCard getAccessCard() {
-        return accessCard;
-    }
+    public AccessCard getAccessCard() { return accessCard; }
 
-    /**
-     * ИСПРАВЛЕННЫЙ СЕТТЕР:
-     * Устанавливает двустороннюю связь. Это критично для того,
-     * чтобы карта "узнала" о владельце в момент создания сотрудника.
-     */
     public void setAccessCard(AccessCard accessCard) {
         this.accessCard = accessCard;
         if (accessCard != null) {
@@ -83,4 +100,11 @@ public class Employee {
 
     public List<Project> getProjects() { return projects; }
     public void setProjects(List<Project> projects) { this.projects = projects; }
+
+    // --- GETTERS tarkastusta varten (jotta ne voidaan näyttää taulukossa)---
+
+    public String getCreatedBy() { return createdBy; }
+    public LocalDateTime getCreatedDate() { return createdDate; }
+    public String getLastModifiedBy() { return lastModifiedBy; }
+    public LocalDateTime getLastModifiedDate() { return lastModifiedDate; }
 }

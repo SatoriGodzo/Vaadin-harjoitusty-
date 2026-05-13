@@ -18,9 +18,9 @@ public class User {
 
     private String imageUrl;
 
-    // Новое поле для хранения изображения в байтах
+    // Uusi kenttä kuvien tallentamiseen tavuina
     @Lob
-    @Column(length = 1000000) // Резервируем место (примерно 1МБ)
+    @Column(length = 1000000) // Pidätämme tilaa (noin 1 MT)
     private byte[] profilePicture;
 
     @ElementCollection(fetch = FetchType.EAGER)
@@ -33,7 +33,7 @@ public class User {
         return id;
     }
 
-    // ID обычно не меняют вручную, поэтому сеттер не добавляем
+    // ID  ei yleensä muutu manuaalisesti, joten emme lisää setteriä.
 
     public String getUsername() {
         return username;
@@ -67,7 +67,7 @@ public class User {
         this.imageUrl = imageUrl;
     }
 
-    // Геттер и сеттер для нового поля
+    // Getter ja setteri uudelle kentälle
     public byte[] getProfilePicture() {
         return profilePicture;
     }
